@@ -6,7 +6,6 @@ using UnityEngine.EventSystems;
 
 public class FadeUI : MonoBehaviour {
 
-    public bool startOnPlay;
     public Vector2 offset;
     public float delay;
     public float speed = 1;
@@ -18,11 +17,14 @@ public class FadeUI : MonoBehaviour {
     Text textComponent;
     public bool active;
     public GameObject splashScreen;
+    bool thisSplashScreenHasBeenShown;
     Vector3 startPos;
     Vector3 targetPos;
     Color col;
     bool fading;
     bool child;
+    List<FadeUI> childFades = new List<FadeUI>();
+    public bool isSplashScreen;
 
 
     // Use this for initialization
@@ -32,20 +34,32 @@ public class FadeUI : MonoBehaviour {
         //children
         if (affectChildren) {
             foreach (Transform t in transform) {
-                FadeUI scr = t.GetComponent<FadeUI>();
-                if (scr == null) {
-                    scr = t.gameObject.AddComponent<FadeUI>();
-                    scr.delay = delay;
-                    scr.speed = speed;
-                    scr.child = true;
-                    scr.splashScreen = splashScreen;
-                    if (startOnPlay) scr.StartFade(true);
+                if (t.childCount > 0) {
+                    foreach (Transform tt in t) {
+                        if (tt != t) AddFade(tt);
+                    }
                 }
+                AddFade(t);
             }
         }
 
-        if (startOnPlay) StartFade(true);
+    }
 
+    private void Start() {
+        StartFade(true);
+    }
+
+    void AddFade(Transform t) {
+        FadeUI scr = t.GetComponent<FadeUI>();
+        if (scr == null) {
+            scr = t.gameObject.AddComponent<FadeUI>();
+            scr.delay = delay;
+            scr.speed = speed;
+            scr.child = true;
+            scr.splashScreen = splashScreen;
+            childFades.Add(scr);
+            scr.StartFade(true);
+        }
     }
 
 
@@ -53,8 +67,8 @@ public class FadeUI : MonoBehaviour {
         if (fading) return;
 
         if (affectChildren) {
-            foreach (FadeUI scr in transform.GetComponentsInChildren<FadeUI>()) {
-                if (startOnPlay && scr != this) scr.StartFade(true);
+            foreach (FadeUI scr in childFades) {
+                if (scr != this) scr.StartFade(start);
             }
         }
 
@@ -81,24 +95,30 @@ public class FadeUI : MonoBehaviour {
         } else {
             targetPos = startPos + (Vector3)offset;
             if (!fading) StartCoroutine(Fade());
+            foreach (FadeUI f in childFades) {
+                f.StartFade(false);
+            }
         }
     }
 
     IEnumerator Fade() {
         bool done = false;
+        fading = true;
 
         if (splashScreen != null && active) {
-            if (!child) {
+            if (!splashScreen.GetComponent<FadeUI>().thisSplashScreenHasBeenShown) {
+                AppUIController.uic.showingSplashScreen = true;
+                splashScreen.GetComponent<FadeUI>().thisSplashScreenHasBeenShown = true;
                 splashScreen.SetActive(true);
-                splashScreen.transform.SetSiblingIndex(splashScreen.transform.parent.childCount-1);
+                splashScreen.transform.SetSiblingIndex(splashScreen.transform.parent.childCount - 1);
                 splashScreen.GetComponent<FadeUI>().StartFade(true);
             }
-            yield return new WaitForSeconds(1f);
         }
 
         var spd = speed;
         if (!active) spd *= 2;
         if (delay > 0 && active) yield return new WaitForSeconds(delay);
+        if (AppUIController.uic.showingSplashScreen && !isSplashScreen) { yield return new WaitForSeconds(2f); AppUIController.uic.showingSplashScreen = false; }
         if (soundEffect != null && active) AudioManager.am.PlayClip(soundEffect, false, soundVolume);
         while (true) {
             col = Color.white;
@@ -114,10 +134,11 @@ public class FadeUI : MonoBehaviour {
                 if (!active && col.a > 0) { col.a -= .01f * spd; if (col.a <= 0) { done = true; } }
                 textComponent.color = col;
             }
+            if (textComponent == null && imageComponent == null) done = true;
 
             if (done && Vector3.Distance(transform.localPosition, targetPos) < 1f) {
                 fading = false;
-                if (!active) gameObject.SetActive(false);
+                if (!active && !child) gameObject.SetActive(false);
                 else {
                     if (splashScreen != null && active) {
                         if (!child) {

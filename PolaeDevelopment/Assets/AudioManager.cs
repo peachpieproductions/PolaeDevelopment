@@ -15,7 +15,7 @@ public class AudioManager : MonoBehaviour {
     internal AudioSource AS;
     public static AudioManager am;
 
-	void Start () {
+	void Awake () {
         AS = gameObject.AddComponent<AudioSource>();
         am = this;
 	}
