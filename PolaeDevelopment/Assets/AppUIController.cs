@@ -15,7 +15,11 @@ public class AppUIController : MonoBehaviour {
     Vector2 invertedSphereSpeed; //x , y
     public bool showingSplashScreen;
 
+    [Header("UI")]
+    public GameObject vrButton;
+
     private void Start() {
+        Application.targetFrameRate = 60;
         uic = GetComponent<AppUIController>();
     }
 
@@ -56,11 +60,13 @@ public class AppUIController : MonoBehaviour {
         yield return new WaitForSeconds(1f);
         switch(type) {
             case 0:
+                vrButton.SetActive(false);
                 canvas.SetActive(true);
                 showPanoStill = false;
                 invertedSphere.gameObject.SetActive(false);
                 break;
             case 1:
+                vrButton.SetActive(true);
                 canvas.SetActive(false);
                 showPanoStill = true;
                 invertedSphere.gameObject.SetActive(true);
