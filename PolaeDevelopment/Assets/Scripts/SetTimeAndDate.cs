@@ -10,7 +10,7 @@ public class SetTimeAndDate : MonoBehaviour {
     Vector3 timeTextTargetPos;
 
     // Use this for initialization
-    void Start () {
+    void Awake () {
         timeText = GetComponent<Text>();
         dateText = transform.GetChild(0).GetComponent<Text>();
         timeTextTargetPos = timeText.transform.localPosition;
@@ -21,7 +21,7 @@ public class SetTimeAndDate : MonoBehaviour {
 
 
         //string monthVar = System.DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss"); print(monthVar);
-        StartCoroutine(UpdateTime());
+        //StartCoroutine(UpdateTime());
         StartCoroutine(FadeIn());
     }
 
@@ -29,6 +29,10 @@ public class SetTimeAndDate : MonoBehaviour {
     void Update () {
 		
 	}
+
+    void OnEnable() {
+        StartCoroutine(UpdateTime());
+    }
 
     IEnumerator FadeIn() {
         transform.localPosition += new Vector3(0, 96);

@@ -17,6 +17,7 @@ public class AppUIController : MonoBehaviour {
 
     [Header("UI")]
     public GameObject vrButton;
+    public GameObject exitPanoButton;
 
     private void Start() {
         Application.targetFrameRate = 60;
@@ -25,9 +26,9 @@ public class AppUIController : MonoBehaviour {
 
     private void Update() {
         if (showPanoStill) {
-            if (Input.GetMouseButton(0)) {
-                invertedSphereSpeed.x = -Input.GetAxis("Mouse X");
-                invertedSphereSpeed.y = Input.GetAxis("Mouse Y");
+            if (Input.touchCount > 0) {
+                invertedSphereSpeed.x = -Input.GetTouch(0).deltaPosition.x * .05f;
+                invertedSphereSpeed.y = Input.GetTouch(0).deltaPosition.y * .05f;
             }
             if (invertedSphereSpeed.x != 0) invertedSphereSpeed.x = Mathf.Lerp(invertedSphereSpeed.x, 0, .1f);
             if (invertedSphereSpeed.y != 0) invertedSphereSpeed.y = Mathf.Lerp(invertedSphereSpeed.y, 0, .1f);
@@ -61,12 +62,14 @@ public class AppUIController : MonoBehaviour {
         switch(type) {
             case 0:
                 vrButton.SetActive(false);
+                exitPanoButton.SetActive(false);
                 canvas.SetActive(true);
                 showPanoStill = false;
                 invertedSphere.gameObject.SetActive(false);
                 break;
             case 1:
                 vrButton.SetActive(true);
+                exitPanoButton.SetActive(true);
                 canvas.SetActive(false);
                 showPanoStill = true;
                 invertedSphere.gameObject.SetActive(true);
